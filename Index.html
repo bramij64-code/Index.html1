@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Payment Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: Arial;
+      padding: 20px;
+      text-align: center;
+    }
+    .box {
+      width: 95%;
+      max-width: 360px;
+      margin: auto;
+      padding: 20px;
+      background: #1e293b;
+      border-radius: 16px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border: none;
+      outline: none;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      font-size: 18px;
+    }
+    button {
+      width: 90%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #22c55e;
+    }
+    #openBtn {
+      background: #475569;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Add Money</h2>
+  <div class="box">
+    <input id="amount" type="number" value="1" min="1" />
+
+    <button id="payBtn">Create Order & Pay</button>
+    <button id="openBtn" disabled>Open Payment Page</button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const API_BASE = ""; // static files served from same domain
+
+    let paymentPage = "";
+    let orderId = "";
+
+    document.getElementById("payBtn").onclick = async () => {
+      const amount = parseInt(document.getElementById("amount").value);
+
+      document.getElementById("status").textContent = "Creating order...";
+      document.getElementById("openBtn").disabled = true;
+
+      const res = await fetch(API_BASE + "/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        document.getElementById("status").textContent = "Error: " + data.error;
+        return;
+      }
+
+      orderId = data.orderId;
+      paymentPage = data.payment_page;
+
+      document.getElementById("status").textContent =
+        "Order Created: " + orderId;
+
+      document.getElementById("openBtn").disabled = false;
+    };
+
+    document.getElementById("openBtn").onclick = () => {
+      window.location.href = paymentPage;
+    };
+  </script>
+
+</body>
+</html>
