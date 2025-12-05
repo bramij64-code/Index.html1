@@ -1,107 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <title>Simple Payment Page</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      background: #0f172a;
-      color: #f8fafc;
-      font-family: Arial;
-      padding: 20px;
-      text-align: center;
-    }
-    .box {
-      width: 95%;
-      max-width: 360px;
-      margin: auto;
-      padding: 20px;
-      background: #1e293b;
-      border-radius: 16px;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 10px 0;
-      border: none;
-      outline: none;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      font-size: 18px;
-    }
-    button {
-      width: 90%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 8px;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      color: white;
-      background: #22c55e;
-    }
-    #openBtn {
-      background: #475569;
-    }
-    #status {
-      margin-top: 10px;
-      font-size: 15px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>পেমেন্ট বাটন</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        #payButton {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+        #payButton:hover {
+            background-color: #45a049;
+        }
+        #responseMessage {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
 
-  <h2>Add Money</h2>
-  <div class="box">
-    <input id="amount" type="number" value="1" min="1" />
+<div class="container">
+    <h2>💰 টুর্নামেন্ট পেমেন্ট</h2>
+    <p>Amount: 1 INR</p>
+    <button id="payButton">পেমেন্ট করুন</button>
 
-    <button id="payBtn">Create Order & Pay</button>
-    <button id="openBtn" disabled>Open Payment Page</button>
+    <h3>Server Response:</h3>
+    <pre id="responseMessage">Waiting...</pre>
+</div>
 
-    <div id="status"></div>
-  </div>
+<script>
+    const PAYMENT_GATEWAY_URL = "https://oopppp.onrender.com/create-order";
 
-  <script>
-    const API_BASE = "https://oopppp.onrender.com"; // static files served from same domain
+    document.getElementById('payButton').addEventListener('click', async () => {
+        const btn = document.getElementById('payButton');
+        const msg = document.getElementById('responseMessage');
 
-    let paymentPage = "";
-    let orderId = "";
+        btn.disabled = true;
+        msg.textContent = "Creating order...";
 
-    document.getElementById("payBtn").onclick = async () => {
-      const amount = parseInt(document.getElementById("amount").value);
+        try {
+            // server only needs amount
+            const data = { amount: 1 };
 
-      document.getElementById("status").textContent = "Creating order...";
-      document.getElementById("openBtn").disabled = true;
+            const res = await fetch(PAYMENT_GATEWAY_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
 
-      const res = await fetch(API_BASE + "/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount })
-      });
+            const result = await res.json();
 
-      const data = await res.json();
+            msg.textContent = JSON.stringify(result, null, 2);
 
-      if (!data.success) {
-        document.getElementById("status").textContent = "Error: " + data.error;
-        return;
-      }
+            if (result?.payment_page) {
+                window.location.href = result.payment_page; // auto open payment page
+            }
 
-      orderId = data.orderId;
-      paymentPage = data.payment_page;
+        } catch (err) {
+            msg.textContent = "❌ Error: " + err.message;
+        }
 
-      document.getElementById("status").textContent =
-        "Order Created: " + orderId;
-
-      document.getElementById("openBtn").disabled = false;
-    };
-
-    document.getElementById("openBtn").onclick = () => {
-      window.location.href = paymentPage;
-    };
-  </script>
+        btn.disabled = false;
+    });
+</script>
 
 </body>
 </html>
