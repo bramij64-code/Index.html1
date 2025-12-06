@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>টুর্নামেন্ট পেমেন্ট</title>
+    <title>FLASH NF PAYMENT</title>
 
     <style>
         body {
@@ -64,13 +64,13 @@
 
 <div class="box">
 
-    <h2>💰 টুর্নামেন্ট পেমেন্ট</h2>
+    <h2>💰FLASH NF PAYMENT</h2>
 
     <!-- COINS DISPLAY -->
     <div id="coinsBox">Coins: Loading...</div>
 
-    <p>Amount: 1 INR</p>
-    <button id="payButton">পেমেন্ট করুন</button>
+    <p>Amount: 10 INR</p>
+    <button id="payButton">PAY</button>
 
     <h3>Server Response:</h3>
     <pre id="responseMessage">Waiting...</pre>
@@ -115,7 +115,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    amount: 1,
+                    amount: 10,
                     userId: USER_ID   // <-- VERY IMPORTANT
                 })
             });
