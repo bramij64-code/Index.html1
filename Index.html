@@ -3,129 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>পেমেন্ট বাটন</title>
+    <title>টুর্নামেন্ট পেমেন্ট</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f4f4f9;
+            background: #f1f5f9;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        .box {
+            width: 90%;
+            max-width: 380px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             text-align: center;
-            width: 350px;
-        }
-        #payButton {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 18px;
-            margin-top: 15px;
-        }
-        #payButton:hover {
-            background-color: #45a049;
-        }
-        #responseMessage {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            white-space: pre-wrap;
-            text-align: left;
         }
         #coinsBox {
-            margin-top: 20px;
-            padding: 12px;
             background: #d1fae5;
+            color: #065f46;
+            padding: 10px;
             border-radius: 8px;
             font-size: 20px;
+            margin-bottom: 15px;
             font-weight: bold;
+        }
+        #payButton {
+            width: 100%;
+            padding: 12px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #payButton:hover {
+            background: #15803d;
+        }
+        #responseMessage {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            text-align: left;
+            border: 1px solid #d1d5db;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="box">
 
     <h2>💰 টুর্নামেন্ট পেমেন্ট</h2>
 
-    <div id="coinsBox">Coins: <span id="coinsValue">0</span></div>
+    <!-- COINS DISPLAY -->
+    <div id="coinsBox">Coins: Loading...</div>
 
     <p>Amount: 1 INR</p>
     <button id="payButton">পেমেন্ট করুন</button>
 
     <h3>Server Response:</h3>
     <pre id="responseMessage">Waiting...</pre>
+
 </div>
 
+
 <script>
-    const PAYMENT_GATEWAY_URL = "https://oopppp.onrender.com/create-order";
+    // ------------------------------------
+    // CONFIGURE YOUR DATA
+    // ------------------------------------
+    const USER_ID = "1cRWcq3oTgyMCkQvaJKIw1nkyH3"; // <-- আপনার Firebase user uid
+    const FIREBASE_URL = "https://flash-nf-default-rtdb.firebaseio.com/";
+    const SERVER_URL = "https://oopppp.onrender.com/create-order";
 
-    // 🔥 এখানে তোমার Firebase User UID বসাও
-    const USER_ID = "YOUR_FIREBASE_UID";
-
-    // 🎯 Coins load function
+    // ------------------------------------
+    // LOAD COINS FROM FIREBASE
+    // ------------------------------------
     async function loadCoins() {
-        try {
-            const url = `https://flash-nf-default-rtdb.firebaseio.com/users/${USER_ID}/coins.json`;
-            let res = await fetch(url);
-            let coins = await res.json();
-            document.getElementById("coinsValue").textContent = coins ?? 0;
-        } catch (err) {
-            console.log("Coin Fetch Error: ", err);
-        }
+        const url = `${FIREBASE_URL}users/${USER_ID}/balance.json`;
+
+        const res = await fetch(url);
+        let balance = await res.json();
+
+        if (balance === null || balance === undefined) balance = 0;
+
+        document.getElementById("coinsBox").textContent = "Coins: " + balance;
     }
 
-    // প্রথমবার coin load করবো
-    loadCoins();
+    loadCoins(); // auto call
 
-    // প্রতি 3 সেকেন্ডে coin auto-refresh হবে
-    setInterval(loadCoins, 3000);
 
-    // Payment System
+    // ------------------------------------
+    // CREATE ORDER & REDIRECT TO PAYMENT
+    // ------------------------------------
     document.getElementById('payButton').addEventListener('click', async () => {
-        const btn = document.getElementById('payButton');
         const msg = document.getElementById('responseMessage');
-
-        btn.disabled = true;
-        msg.textContent = "Creating order...";
+        msg.textContent = "Creating Order...";
 
         try {
-            const data = { amount: 1, userId: USER_ID };
-
-            const res = await fetch(PAYMENT_GATEWAY_URL, {
+            const res = await fetch(SERVER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    amount: 1,
+                    userId: USER_ID   // <-- VERY IMPORTANT
+                })
             });
 
-            const result = await res.json();
+            const data = await res.json();
+            msg.textContent = JSON.stringify(data, null, 2);
 
-            msg.textContent = JSON.stringify(result, null, 2);
-
-            if (result?.payment_page) {
-                window.location.href = result.payment_page;
+            if (data.payment_page) {
+                window.location.href = data.payment_page;
             }
 
         } catch (err) {
             msg.textContent = "❌ Error: " + err.message;
         }
-
-        btn.disabled = false;
     });
+
+    // ------------------------------------
+    // AUTO REFRESH COINS EVERY 5 SECONDS
+    // ------------------------------------
+    setInterval(loadCoins, 5000);
 </script>
 
 </body>
