@@ -22,6 +22,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 350px;
         }
         #payButton {
             background-color: #4CAF50;
@@ -45,12 +46,24 @@
             white-space: pre-wrap;
             text-align: left;
         }
+        #coinsBox {
+            margin-top: 20px;
+            padding: 12px;
+            background: #d1fae5;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+
     <h2>💰 টুর্নামেন্ট পেমেন্ট</h2>
+
+    <div id="coinsBox">Coins: <span id="coinsValue">0</span></div>
+
     <p>Amount: 1 INR</p>
     <button id="payButton">পেমেন্ট করুন</button>
 
@@ -59,12 +72,30 @@
 </div>
 
 <script>
-    // তোমার Render backend:
     const PAYMENT_GATEWAY_URL = "https://oopppp.onrender.com/create-order";
 
-    // এখানে তোমার Firebase User UID বসাও:
-    const USER_ID = "1cRWcqx3oTgyMCkQvaJKIw1nkyH3";  // ← নিজের UID বসাও
+    // 🔥 এখানে তোমার Firebase User UID বসাও
+    const USER_ID = "YOUR_FIREBASE_UID";
 
+    // 🎯 Coins load function
+    async function loadCoins() {
+        try {
+            const url = `https://flash-nf-default-rtdb.firebaseio.com/users/${USER_ID}/coins.json`;
+            let res = await fetch(url);
+            let coins = await res.json();
+            document.getElementById("coinsValue").textContent = coins ?? 0;
+        } catch (err) {
+            console.log("Coin Fetch Error: ", err);
+        }
+    }
+
+    // প্রথমবার coin load করবো
+    loadCoins();
+
+    // প্রতি 3 সেকেন্ডে coin auto-refresh হবে
+    setInterval(loadCoins, 3000);
+
+    // Payment System
     document.getElementById('payButton').addEventListener('click', async () => {
         const btn = document.getElementById('payButton');
         const msg = document.getElementById('responseMessage');
@@ -73,16 +104,12 @@
         msg.textContent = "Creating order...";
 
         try {
-            // server needs: amount + userId
-            const bodyData = { 
-                amount: 1,
-                userId: USER_ID 
-            };
+            const data = { amount: 1, userId: USER_ID };
 
             const res = await fetch(PAYMENT_GATEWAY_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(bodyData)
+                body: JSON.stringify(data)
             });
 
             const result = await res.json();
@@ -90,7 +117,7 @@
             msg.textContent = JSON.stringify(result, null, 2);
 
             if (result?.payment_page) {
-                window.location.href = result.payment_page; // redirect to payment
+                window.location.href = result.payment_page;
             }
 
         } catch (err) {
