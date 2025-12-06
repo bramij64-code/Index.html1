@@ -34,48 +34,79 @@
             border-radius: 8px;
             font-size: 18px;
             cursor: pointer;
-            margin-top: 10px;
         }
-        #payButton:hover {
-            background: #4338ca;
+        #payButton:disabled {
+            background: #a5b4fc;
         }
     </style>
 </head>
 <body>
 
 <div class="box">
-
     <h2>⚡ Recharge Coins</h2>
-
     <p>Recharge Amount: ₹10</p>
-    <button id="payButton">Pay ₹10</button>
-
+    <button id="payButton" disabled>Loading...</button>
 </div>
 
-<script>
-    // ------------------------------------
-    // GET USER ID FROM URL
-    // ------------------------------------
-    function getUserIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("uid"); // ?uid=xxxxxx
-    }
+<!-- Firebase Authentication + App -->
+<script type="module">
+    // ----------------------------------------------------
+    // Firebase SDK Import
+    // ----------------------------------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const USER_ID = getUserIdFromUrl();
+    // ----------------------------------------------------
+    // Firebase Config (YOUR CONFIG HERE)
+    // ----------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyAEZ2CQKJhzevi9VZ4Q7f5feCuaou8e4lA",
+  authDomain: "flash-nf.firebaseapp.com",
+  databaseURL: "https://flash-nf-default-rtdb.firebaseio.com",
+  projectId: "flash-nf",
+  storageBucket: "flash-nf.firebasestorage.app",
+  messagingSenderId: "239647949619",
+  appId: "1:239647949619:web:be9abdb58d10a9c3167446",
+  measurementId: "G-NF5T3MFQFT"
+    };
 
-    if (!USER_ID) {
-        alert("User ID missing! Add ?uid=USER_ID in URL.");
-    }
+    // ----------------------------------------------------
+    // Initialize Firebase
+    // ----------------------------------------------------
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    // ------------------------------------
-    // PAYMENT START
-    // ------------------------------------
+    // Global UID
+    let USER_ID = "";
+
+    // UI Button Reference
+    const payBtn = document.getElementById("payButton");
+
+    // ----------------------------------------------------
+    // Detect Login & Auto Set User ID
+    // ----------------------------------------------------
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            USER_ID = user.uid;
+            payBtn.disabled = false;
+            payBtn.textContent = "Pay ₹10";
+            console.log("Logged in:", USER_ID);
+        } else {
+            payBtn.disabled = true;
+            payBtn.textContent = "Login Required";
+            alert("Please login inside the Tournament App first!");
+        }
+    });
+
+    // ----------------------------------------------------
+    // Payment Create Order
+    // ----------------------------------------------------
     const SERVER_URL = "https://oopppp.onrender.com/create-order";
 
-    document.getElementById("payButton").addEventListener("click", async () => {
+    payBtn.addEventListener("click", async () => {
 
         if (!USER_ID) {
-            alert("User ID missing!");
+            alert("Login required!");
             return;
         }
 
@@ -93,6 +124,8 @@
 
             if (data.payment_page) {
                 window.location.href = data.payment_page;
+            } else {
+                alert("Error creating payment!");
             }
 
         } catch (err) {
@@ -101,6 +134,5 @@
     });
 
 </script>
-
 </body>
 </html>
