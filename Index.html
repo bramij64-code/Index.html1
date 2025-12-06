@@ -25,15 +25,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             text-align: center;
         }
-        #coinsBox {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 22px;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
         #payButton {
             width: 100%;
             padding: 12px;
@@ -56,83 +47,35 @@
 
     <h2>⚡ Recharge Coins</h2>
 
-    <div id="coinsBox">Coins: Loading...</div>
-
     <p>Recharge Amount: ₹10</p>
     <button id="payButton">Pay ₹10</button>
 
 </div>
 
-<!-- -----------------------------
-     FIREBASE AUTH CONFIG
------------------------------- -->
-<script type="module">
-    // Firebase imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // -------------------------------
-    // Firebase Config (replace with your real config)
-    // -------------------------------
-    const firebaseConfig = {
-        apiKey: "AIzaSyAEZ2CQKJhzevi9VZ4Q7f5feCuaou8e4lA",
-  authDomain: "flash-nf.firebaseapp.com",
-  databaseURL: "https://flash-nf-default-rtdb.firebaseio.com",
-  projectId: "flash-nf",
-  storageBucket: "flash-nf.firebasestorage.app",
-  messagingSenderId: "239647949619",
-  appId: "1:239647949619:web:be9abdb58d10a9c3167446",
-  measurementId: "G-NF5T3MFQFT"
-    };
-
-    // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // Global user id
-    let USER_ID = "";
-
-    // Backend + Firebase URL
-    const FIREBASE_URL = "https://flash-nf-default-rtdb.firebaseio.com/";
-    const SERVER_URL = "https://oopppp.onrender.com/create-order";
-
-
-    // -------------------------------
-    // CHECK USER LOGIN
-    // -------------------------------
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            USER_ID = user.uid;      // <-- Auto User ID
-            loadCoins();             // Load coins once logged in
-        } else {
-            alert("Please login first!");
-        }
-    });
-
-
-    // -------------------------------
-    // LOAD COINS FUNCTION
-    // -------------------------------
-    async function loadCoins() {
-        if (!USER_ID) return;
-
-        const res = await fetch(`${FIREBASE_URL}users/${USER_ID}/balance.json`);
-        let balance = await res.json();
-
-        if (!balance) balance = 0;
-
-        document.getElementById("coinsBox").textContent = "Coins: " + balance;
+<script>
+    // ------------------------------------
+    // GET USER ID FROM URL
+    // ------------------------------------
+    function getUserIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("uid"); // ?uid=xxxxxx
     }
 
-    setInterval(loadCoins, 4000);
+    const USER_ID = getUserIdFromUrl();
 
+    if (!USER_ID) {
+        alert("User ID missing! Add ?uid=USER_ID in URL.");
+    }
 
-    // -------------------------------
-    // PAYMENT BUTTON CLICK
-    // -------------------------------
+    // ------------------------------------
+    // PAYMENT START
+    // ------------------------------------
+    const SERVER_URL = "https://oopppp.onrender.com/create-order";
+
     document.getElementById("payButton").addEventListener("click", async () => {
+
         if (!USER_ID) {
-            alert("Login required!");
+            alert("User ID missing!");
             return;
         }
 
