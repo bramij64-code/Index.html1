@@ -59,7 +59,11 @@
 </div>
 
 <script>
+    // তোমার Render backend:
     const PAYMENT_GATEWAY_URL = "https://oopppp.onrender.com/create-order";
+
+    // এখানে তোমার Firebase User UID বসাও:
+    const USER_ID = "1cRWcqx3oTgyMCkQvaJKIw1nkyH3";  // ← নিজের UID বসাও
 
     document.getElementById('payButton').addEventListener('click', async () => {
         const btn = document.getElementById('payButton');
@@ -69,13 +73,16 @@
         msg.textContent = "Creating order...";
 
         try {
-            // server only needs amount
-            const data = { amount: 1 };
+            // server needs: amount + userId
+            const bodyData = { 
+                amount: 1,
+                userId: USER_ID 
+            };
 
             const res = await fetch(PAYMENT_GATEWAY_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                body: JSON.stringify(bodyData)
             });
 
             const result = await res.json();
@@ -83,7 +90,7 @@
             msg.textContent = JSON.stringify(result, null, 2);
 
             if (result?.payment_page) {
-                window.location.href = result.payment_page; // auto open payment page
+                window.location.href = result.payment_page; // redirect to payment
             }
 
         } catch (err) {
